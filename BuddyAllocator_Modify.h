@@ -26,15 +26,26 @@ class BuddyAllocator {
         void _merge(int listNo);
         void _mergeAll();
 
+        buddy_block* findLeastUsedBlock();
+        void updateAccessCount(buddy_block* block);
+
+
     public:
         BuddyAllocator();
         BuddyAllocator(int sizeKb);
-        unsigned long getSize();
-        unsigned long getSizeKb();
-        void dumpLists();
-        char *getMemoryPointer();
-        buddy_block *allocate(int sizeKb);
-        void deallocate(buddy_block *);
+
+        ~BuddyAllocator();
+        char* allocate(int sizeKb);
+        void deallocate(char* block);
+        void mergeBlocks(buddy_block* block1, buddy_block* block2);
+        void divideBlock(buddy_block* block);
+
+        // unsigned long getSize();
+        // unsigned long getSizeKb();
+        // void dumpLists();
+        // char *getMemoryPointer();
+        // buddy_block *allocate(int sizeKb);
+        // void deallocate(buddy_block *);
 };
 
 #endif

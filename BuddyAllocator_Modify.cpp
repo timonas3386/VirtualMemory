@@ -18,6 +18,9 @@ void BuddyAllocator::_init(int sizeKb) {
         exit(EXIT_SUCCESS);
     }
 
+    buddy_block* initialBlock = new buddy_block{_memory, _size, 0};
+    _blocks.push_back(*initialBlock);
+
     _blocks = new LinkedList[_getListsSize()];
     for (int i = 0; i < _getListsSize(); i++) {
         _blocks[i] = LinkedList(pow(2, i + log2(BLOCK_MIN_SIZE_KB)));

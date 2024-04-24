@@ -35,7 +35,6 @@ void LinkedList::print() {
     
     while (iterator != NULL) {
         std::cout << iterator->address << " ";
-        std::cout << " Allocated: " << (iterator->isAllocated ? "Yes" : "No") << " ";
         iterator = iterator->next;
     }
     std::cout << std::endl;
