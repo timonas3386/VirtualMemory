@@ -105,8 +105,7 @@ void BuddyAllocator::dumpLists() {
         std::cout << _blocks[i].getBlockSizeKb() << "KB: ";
         for (int j = 0; j < _blocks[i].getLength(); j++) {
             list_block *currentBlock = _blocks[i].getBlockAt(j);
-            std::cout << "[" << currentBlock->address 
-                      << ", usage: " << currentBlock->usageCount << "] ";
+            std::cout << "[" << currentBlock->address << "] ";
         }
         std::cout << std::endl;
     }
@@ -124,7 +123,6 @@ buddy_block *BuddyAllocator::allocate(int sizeKb) {
         if (_blocks[listNo].getLength() > 0) {
             allocateBlock = _blocks[listNo].getBlockAt(0);
             _blocks[listNo].removeBlockAt(0);
-            allocateBlock->usageCount++;
             found = true;
         }
         else if (listNo < _getListsSize()){
