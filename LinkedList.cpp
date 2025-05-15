@@ -51,9 +51,12 @@ list_block *LinkedList::getBlockAt(unsigned int position) {
     return current;
 }
 
-void LinkedList::addBlockStart(void *address) {
+void LinkedList::addBlockStart(void *address, unsigned int count) {
     list_block *newBlock = new list_block;
     newBlock->address = address;
+
+    newBlock->count = count;
+
     newBlock->next = NULL;
     if (_length == 0) {
         _head = newBlock;
@@ -66,9 +69,13 @@ void LinkedList::addBlockStart(void *address) {
     _length++;
 }
 
-void LinkedList::addBlockEnd(void *address) {
+void LinkedList::addBlockEnd(void *address, unsigned int count) {
     list_block *newBlock = new list_block;
     newBlock->address = address;
+
+    newBlock->isAllocated = false;
+    newBlock->count = count;
+
     newBlock->next = NULL;
     if (_length == 0) {
         _head = newBlock;
@@ -82,13 +89,17 @@ void LinkedList::addBlockEnd(void *address) {
     _length++;
 }
 
-void LinkedList::addBlockAt(unsigned int position, void *address) {
+void LinkedList::addBlockAt(unsigned int position, void *address, unsigned int count) {
     if (_length == 0 || position == 0) {
         addBlockStart(address);
     }
     else {
         list_block *newBlock = new list_block;
         newBlock->address = address;
+
+        newBlock->isAllocated = false;
+        newBlock->count = count;
+        
         list_block *beforeBlock = new list_block;
         beforeBlock = getBlockAt(position - 1);
         newBlock->next = beforeBlock->next;

@@ -6,7 +6,6 @@
 BuddyAllocator::BuddyAllocator() {
     _init(MEMORY_DEFAULT_SIZE_KB);
 }
-
 BuddyAllocator::BuddyAllocator(int sizeKb) {
     _init(sizeKb);
 }
@@ -23,9 +22,7 @@ void BuddyAllocator::_init(int sizeKb) {
     for (int i = 0; i < _getListsSize(); i++) {
         _blocks[i] = LinkedList(pow(2, i + log2(BLOCK_MIN_SIZE_KB)));
     }
-
-    _blocks[_getListNo(getSizeKb())].addBlockEnd(_memory, 0);
-
+    _blocks[_getListNo(getSizeKb())].addBlockEnd(_memory);
 }
 
 int BuddyAllocator::_getListsSize() {
@@ -47,16 +44,16 @@ unsigned long BuddyAllocator::getSizeKb() {
 void BuddyAllocator::_sortList(int listNo) {
     LinkedList unsorted = _blocks[listNo];
     LinkedList sorted = LinkedList(unsorted.getBlockSizeKb());
-    sorted.addBlockStart(unsorted.getBlockAt(0)->address, unsorted.getBlockAt(0)->count);
+    sorted.addBlockStart(unsorted.getBlockAt(0)->address);
     for (int i = 1; i < unsorted.getLength(); i++) {
         void *insertAddress = unsorted.getBlockAt(i)->address;
-        int insertCount = unsorted.getBlockAt(i)->count;
         for (int j = 0; j < sorted.getLength(); j++) {
             if (insertAddress <= (sorted.getBlockAt(j)->address)) {
-                sorted.addBlockStart(insertAddress, insertCount);
+                sorted.addBlockStart(insertAddress);
                 break;
-            } else if (j == sorted.getLength() - 1 && insertAddress > (sorted.getBlockAt(j)->address)) {
-                sorted.addBlockEnd(insertAddress, insertCount);
+            }
+            else if ( j == sorted.getLength() - 1 && insertAddress > (sorted.getBlockAt(j)->address)) {
+                sorted.addBlockEnd(insertAddress);
                 break;
             }
         }
@@ -71,10 +68,15 @@ int *BuddyAllocator::_findBuddies(int listNo) {
         int *buddies = (int *)malloc(sizeof(int) * 2);
         int blockSize = list.getBlockSizeKb() * 1000;
         for (int i = 0; i <= list.getLength() - 2; i++) {
+            // if (list.getBlockAt(i)->address == (char *)list.getBlockAt(i + 1)->address - blockSize) {
+            //     buddies[0] = i;
+            //     buddies[1] = i + 1;
+            //     return buddies;
+            // }
             buddies[0] = i;
             buddies[1] = i + 1;
             return buddies;
-        }
+        }        
     }
     return NULL;
 }
@@ -83,12 +85,9 @@ void BuddyAllocator::_merge(int listNo) {
     int *buddies = _findBuddies(listNo);
     while (buddies != NULL) {
         void* startAddress = _blocks[listNo].getBlockAt(buddies[0])->address;
-
-        int maxCount = std::max(_blocks[listNo].getBlockAt(buddies[0])->count, _blocks[listNo].getBlockAt(buddies[1])->count);
-
         _blocks[listNo].removeBlockAt(buddies[1]);
         _blocks[listNo].removeBlockAt(buddies[0]);
-        _blocks[listNo + 1].addBlockStart(startAddress, maxCount);
+        _blocks[listNo + 1].addBlockStart(startAddress);
         _sortList(listNo + 1);
 
         buddies = _findBuddies(listNo);
@@ -106,7 +105,7 @@ void BuddyAllocator::dumpLists() {
         std::cout << _blocks[i].getBlockSizeKb() << "KB: ";
         for (int j = 0; j < _blocks[i].getLength(); j++) {
             list_block *currentBlock = _blocks[i].getBlockAt(j);
-            std::cout << "[" << currentBlock->address << ", count: " << currentBlock->count << "] ";
+            std::cout << "[" << currentBlock->address << "] ";
         }
         std::cout << std::endl;
     }
@@ -125,17 +124,19 @@ buddy_block *BuddyAllocator::allocate(int sizeKb) {
             allocateBlock = _blocks[listNo].getBlockAt(0);
             _blocks[listNo].removeBlockAt(0);
             found = true;
-        } else if (listNo < _getListsSize()){
+        }
+        else if (listNo < _getListsSize()){
             listNo++;
             if (_blocks[listNo].getLength() > 0) {
                 list_block *removeBlock = new list_block;
                 removeBlock = _blocks[listNo].getBlockAt(0);
-                _blocks[listNo - 1].addBlockStart(((char *)removeBlock->address + (_blocks[listNo - 1].getBlockSizeKb() * 1000)), removeBlock->count);
-                _blocks[listNo - 1].addBlockStart(removeBlock->address, removeBlock->count);
+                _blocks[listNo - 1].addBlockStart(((char *)removeBlock->address + (_blocks[listNo - 1].getBlockSizeKb() * 1000)));
+                _blocks[listNo - 1].addBlockStart(removeBlock->address);
                 _blocks[listNo].removeBlockAt(0);
                 listNo = _getListNo(sizeKb);
             }
-        } else {
+        }
+        else {
             break;
         }
     }
@@ -143,19 +144,16 @@ buddy_block *BuddyAllocator::allocate(int sizeKb) {
         buddy_block *foundBlock = new buddy_block;
         foundBlock->startAddress = (char *) allocateBlock->address;
         foundBlock->sizeKb = _blocks[listNo].getBlockSizeKb();
-
-        foundBlock->count = allocateBlock->count+1;
-        allocateBlock->count++;
-
         return foundBlock;
-    } else {
+    }
+    else {
         return NULL;
     }
 }
 
 void BuddyAllocator::deallocate(buddy_block *freeBlock) {
     int listNo = _getListNo(freeBlock->sizeKb);
-    _blocks[listNo].addBlockStart(freeBlock->startAddress, freeBlock->count);
+    _blocks[listNo].addBlockStart(freeBlock->startAddress);
     _sortList(listNo);
     _mergeAll();
 }

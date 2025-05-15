@@ -9,7 +9,7 @@
 struct buddy_block {
     char* startAddress;
     unsigned int sizeKb;
-    unsigned int usageCount = 0;
+    unsigned int count = 0;
 };
 
 class BuddyAllocator {

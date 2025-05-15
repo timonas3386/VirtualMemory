@@ -6,6 +6,9 @@
 struct list_block {
     void *address;
     bool isAllocated;
+
+    unsigned int count;
+
     list_block *next;
 };
 
@@ -29,9 +32,9 @@ class LinkedList {
         int getLength();
         void print();
         list_block *getBlockAt(unsigned int position);
-        void addBlockStart(void *address);
-        void addBlockEnd(void *address);
-        void addBlockAt(unsigned int position, void *address);
+        void addBlockStart(void *address, unsigned int count);
+        void addBlockEnd(void *address, unsigned int count);
+        void addBlockAt(unsigned int position, void *address, unsigned int count);
         void removeBlockStart();
         void removeBlockEnd();
         void removeBlockAt(unsigned int position);
